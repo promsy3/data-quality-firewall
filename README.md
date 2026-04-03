@@ -1,6 +1,12 @@
 # 🛡️ Data Quality Firewall
 **An Automated, Event-Driven Data Validation Pipeline**
 
+<p align="center">
+  <img src="architecture.png" width="850" alt="Data Quality Firewall Architecture">
+</p>
+
+---
+
 The **Data Quality Firewall** is a robust Python-based "gatekeeper" designed to automate the ingestion and validation of CSV data into a **MySQL** data warehouse. It eliminates manual data entry errors by ensuring only high-quality, verified records reach your production environment.
 
 ### 🚀 Core Architecture
