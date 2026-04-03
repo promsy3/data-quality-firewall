@@ -1,0 +1,16 @@
+# Ignore the Python cache folder
+__pycache__/
+
+# Ignore your data folders (keep your repo clean)
+incoming/
+processed/
+reports/
+logs/
+
+# Ignore local databases mentioned in your README
+*.sqlite
+*.db
+
+# Ignore system files
+.DS_Store
+Thumbs.db
