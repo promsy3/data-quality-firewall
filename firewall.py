@@ -14,7 +14,7 @@ from watchdog.observers import Observer
 
 # Note: make sure 'engine' is defined and exported in your db.py
 from db import init_db, log_event, log_scan, engine 
-from quality_checks import check_nulls, check_outliers
+from quality_checks import check_nulls, check_outliers, check_data_contract, detect_anomalies
 from report_gen import generate_pdf_report
 
 load_dotenv()
@@ -46,6 +46,7 @@ def process_csv(filepath: str) -> dict:
         "started": started.isoformat(),
         "rows": 0, "columns": 0,
         "null_issues": [], "outlier_issues": [],
+        "schema_issues": [], "anomaly_issues": [],
         "passed": False, "error": None,
     }
 
@@ -58,7 +59,9 @@ def process_csv(filepath: str) -> dict:
 
         result["null_issues"]    = check_nulls(df, filename)
         result["outlier_issues"] = check_outliers(df, filename)
-        all_issues = result["null_issues"] + result["outlier_issues"]
+        result["schema_issues"]  = check_data_contract(df, filename)
+        result["anomaly_issues"] = detect_anomalies(df, filename)
+        all_issues = result["null_issues"] + result["outlier_issues"] + result["schema_issues"] + result["anomaly_issues"]
 
         if not all_issues:
             # ─── PUSH TO MYSQL WORKBENCH ───
@@ -85,7 +88,7 @@ def process_csv(filepath: str) -> dict:
 
     pdf_path = REPORTS_DIR / f"report_{Path(filename).stem}_{started.strftime('%Y%m%d_%H%M%S')}.pdf"
     generate_pdf_report(result, str(pdf_path))
-    print(f"[Firewall] {'✅ PASSED' if result['passed'] else '❌ REJECTED'} {filename}")
+    print(f"[Firewall] {'[PASS]' if result['passed'] else '[FAIL]'} {filename}")
     return result
 
 class CSVHandler(FileSystemEventHandler):

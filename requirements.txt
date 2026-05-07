@@ -4,3 +4,6 @@ SQLAlchemy
 PyMySQL
 reportlab
 python-dotenv
+pandera
+scikit-learn
+cryptography

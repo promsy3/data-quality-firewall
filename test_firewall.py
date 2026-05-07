@@ -26,7 +26,7 @@ def make_clean_csv() -> str:
     path = INCOMING_DIR / "clean_data.csv"
     df = pd.DataFrame({
         "age":    rng.integers(20, 60, 100),
-        "salary": rng.normal(55000, 8000, 100).round(2),
+        "salary": rng.uniform(40000, 70000, 100).round(2),
         "score":  rng.uniform(0, 100, 100).round(2),
         "name":   [f"User_{i}" for i in range(100)],
     })
@@ -61,6 +61,36 @@ def make_outlier_csv() -> str:
     df.to_csv(path, index=False)
     return str(path)
 
+def make_schema_fail_csv() -> str:
+    path = INCOMING_DIR / "schema_fail_data.csv"
+    df = pd.DataFrame({
+        "age":    [75] * 100,  # Fails data contract (18-65)
+        "salary": rng.normal(55000, 8000, 100).round(2),
+        "score":  rng.uniform(0, 100, 100).round(2),
+        "name":   [f"User_{i}" for i in range(100)],
+    })
+    df.to_csv(path, index=False)
+    return str(path)
+
+def make_anomaly_csv() -> str:
+    path = INCOMING_DIR / "anomaly_data.csv"
+    # Normal data
+    df = pd.DataFrame({
+        "age":    rng.integers(20, 60, 95),
+        "salary": rng.normal(55000, 8000, 95).round(2),
+        "score":  rng.uniform(40, 80, 95).round(2),
+        "name":   [f"User_{i}" for i in range(95)],
+    })
+    # Anomalous data (not extreme outliers in 1D, but strange multivariate combination)
+    anomalies = pd.DataFrame({
+        "age":    [22, 23, 21, 24, 22],
+        "salary": [100000, 105000, 110000, 95000, 102000],
+        "score":  [10, 12, 15, 11, 14],
+        "name":   [f"Anon_{i}" for i in range(5)],
+    })
+    df = pd.concat([df, anomalies], ignore_index=True)
+    df.to_csv(path, index=False)
+    return str(path)
 
 # ─────────────────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
@@ -74,11 +104,13 @@ if __name__ == "__main__":
         ("CLEAN",   make_clean_csv()),
         ("NULLS",   make_null_csv()),
         ("OUTLIERS",make_outlier_csv()),
+        ("SCHEMA",  make_schema_fail_csv()),
+        ("ANOMALY", make_anomaly_csv()),
     ]
 
     results = []
     for label, fpath in test_files:
-        print(f"\n▶  Processing [{label}]  {Path(fpath).name} ...")
+        print(f"\n>  Processing [{label}]  {Path(fpath).name} ...")
         result = process_csv(fpath)
         results.append((label, result))
 
@@ -86,11 +118,11 @@ if __name__ == "__main__":
     print("  SUMMARY")
     print("=" * 56)
     for label, r in results:
-        status = "✅ PASSED" if r["passed"] else "❌ REJECTED"
-        issues = len(r["null_issues"]) + len(r["outlier_issues"])
+        status = "[PASS]" if r["passed"] else "[FAIL]"
+        issues = len(r["null_issues"]) + len(r["outlier_issues"]) + len(r.get("schema_issues", [])) + len(r.get("anomaly_issues", []))
         err    = f"  ERROR: {r['error']}" if r.get("error") else ""
         print(f"  {status}  [{label:8s}]  {r['filename']}  ({issues} issue(s)){err}")
 
-    print(f"\n  PDF reports → {Path('reports/').resolve()}")
-    print(f"  SQLite log  → {DB_PATH}")
+    print(f"\n  PDF reports -> {Path('reports/').resolve()}")
+    print(f"  SQLite log  -> {DB_PATH}")
     print("=" * 56)
