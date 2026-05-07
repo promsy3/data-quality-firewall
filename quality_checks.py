@@ -1,4 +1,4 @@
-def check_nulls(df, filename, conn):
+def check_nulls(df, filename):
     """Checks for empty values in the CSV."""
     issues = []
     null_counts = df.isnull().sum()
@@ -7,7 +7,7 @@ def check_nulls(df, filename, conn):
             issues.append(f"Column '{col}' has {count} null values")
     return issues
 
-def check_outliers(df, filename, conn):
+def check_outliers(df, filename):
     """Detects values more than 3 standard deviations from the mean."""
     issues = []
     # Only check numeric columns

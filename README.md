@@ -25,6 +25,29 @@ The **Data Quality Firewall** is a robust Python-based "gatekeeper" designed to 
 ---
 
 ### 📦 Setup & Installation
+
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com
+   git clone <repository_url>
+   cd data-quality-firewall
+   ```
+
+2. **Set up a Virtual Environment & Install Dependencies:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows use: venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+3. **Configure Environment Variables:**
+   * Copy the example configuration file:
+     ```bash
+     cp .env.example .env
+     ```
+   * Open `.env` and update the `DATABASE_URL` and `TARGET_TABLE` with your production MySQL credentials.
+
+4. **Start the Firewall:**
+   ```bash
+   python firewall.py
+   ```
+   *The system is now watching the `incoming/` directory. Drop any `.csv` file into that folder to process it!*

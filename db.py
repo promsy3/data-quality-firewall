@@ -1,8 +1,13 @@
+import os
 import sqlite3
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
+load_dotenv()
+
 # Keep your engine for SQLAlchemy needs
-engine = create_engine("mysql+pymysql://root:$irsquad13@127.0.0.1:3306/parks_and_recreation")
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///fallback.db")
+engine = create_engine(DATABASE_URL)
 
 def init_db(db_path):
     """Creates the necessary tables in SQLite if they don't exist."""

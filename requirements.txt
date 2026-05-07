@@ -1,0 +1,6 @@
+pandas
+watchdog
+SQLAlchemy
+PyMySQL
+reportlab
+python-dotenv

@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+from dotenv import load_dotenv
 from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -15,6 +16,9 @@ from watchdog.observers import Observer
 from db import init_db, log_event, log_scan, engine 
 from quality_checks import check_nulls, check_outliers
 from report_gen import generate_pdf_report
+
+load_dotenv()
+TARGET_TABLE = os.environ.get("TARGET_TABLE", "employee_demographics")
 
 # ── Directory layout ──────────────────────────────────────────────────────────
 BASE_DIR     = Path(__file__).parent
@@ -52,19 +56,16 @@ def process_csv(filepath: str) -> dict:
 
         log_event(conn, filename, "INFO", f"Loaded — {result['rows']} rows")
 
-        with ThreadPoolExecutor(max_workers=2) as qc_pool:
-            null_future    = qc_pool.submit(check_nulls,    df, filename, conn)
-            outlier_future = qc_pool.submit(check_outliers, df, filename, conn)
-
-        result["null_issues"]    = null_future.result()
-        result["outlier_issues"] = outlier_future.result()
+        result["null_issues"]    = check_nulls(df, filename)
+        result["outlier_issues"] = check_outliers(df, filename)
         all_issues = result["null_issues"] + result["outlier_issues"]
 
         if not all_issues:
             # ─── PUSH TO MYSQL WORKBENCH ───
-            df.to_sql('employee_demographics', con=engine, if_exists='append', index=False)
+            df.to_sql(TARGET_TABLE, con=engine, if_exists='append', index=False)
             
-            dest = PROCESSED_DIR / filename
+            timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
+            dest = PROCESSED_DIR / f"{path.stem}_{timestamp_str}{path.suffix}"
             shutil.move(str(path), str(dest))
             result["passed"] = True
             log_event(conn, filename, "PASS", "Pushed to MySQL & moved.")
