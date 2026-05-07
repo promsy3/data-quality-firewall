@@ -28,8 +28,9 @@ The **Data Quality Firewall** is a robust Python-based "gatekeeper" designed to 
 
 1. **Clone the repository:**
    ```bash
-   git clone <repository_url>
+   git clone https://github.com/promsy3/data-quality-firewall.git
    cd data-quality-firewall
+
    ```
 
 2. **Set up a Virtual Environment & Install Dependencies:**
